@@ -10,6 +10,24 @@ library(tidyverse)
 library(rvest)
 library(dplyr)
 
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
 set.seed(924)
 ```
 
@@ -125,4 +143,96 @@ estimates_plot
 There is a clear association between effect size and power. When the true value of mu is small, the test has low power, meaning there is a smaller chance of rejecting the null hypothesis. However, as mu increases, representing a larger effect size, the power of the test also increases. Specifically, according to the the "Effect Size and Power" plot, from mu = 1 to mu = 3, the power rises sharply. Beyond mu = 4, the power approaches 1, indicating that the test is highly effective at detecting a false null hypothesis at these larger effect sizes.
 
 The sample average of mu^hat across tests for which the null is rejected is not exactly equal to the true value of mu. 
+
+
+# Problem 3. Homicide Rates Across U.S. Cities
+
+```{r}
+url = "https://raw.githubusercontent.com/washingtonpost/data-homicides/refs/heads/master/homicide-data.csv"
+
+homi_data = read_csv(url)
+
+homi_data2 = homi_data |> 
+  janitor::clean_names() |> 
+  mutate(
+    city_state = str_c(city, ", ", state)
+  )
+
+total_vs_unsolve = homi_data2 |> 
+    group_by(city_state) |> 
+  summarize(
+    Total_homicides = n(),
+    Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+
+knitr::kable(total_vs_unsolve, caption = "Total and Unsolved Homicides Across U.S. Cities")
+
+```
+
+The raw data contains `r ncol(homi_data)` variables, which are `r names(homi_data)`, and `r nrow(homi_data)` observations. 
+
+```{r}
+Bal_MD_prop = homi_data2 |> 
+  filter(city_state == "Baltimore, MD") |> 
+  summarize(
+    Total_Homicides_in_Baltimore_MD = n(),
+    Unsolved_Homicides_in_Baltimore_MD = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+
+knitr::kable(Bal_MD_prop)
+
+Bal_MD_prop_res = prop.test(Bal_MD_prop$Unsolved_Homicides_in_Baltimore_MD, Bal_MD_prop$Total_Homicides_in_Baltimore_MD) |> 
+  broom::tidy() |> 
+  select(estimate,conf.low, conf.high)
+
+knitr::kable(Bal_MD_prop_res, caption = "Proportion of Unsolved Homicides in Baltimore, MD")
+```
+
+```{r}
+homicide_rate_by_cities = function(city_name) {
+  
+  city = homi_data2 |> 
+    filter(city_state == city_name) |> 
+  summarize(
+    Total_Homicides = n(),
+    Unsolved_Homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+  
+  prop_res = prop.test(city$Unsolved_Homicides, city$Total_Homicides) |> 
+    broom::tidy() |> 
+    select(estimate,conf.low, conf.high)
+  
+  return(prop_res)
+}
+
+all_cities_states = unique(homi_data2$city_state)
+
+homi_summary = tibble(
+  city_state = all_cities_states,
+  res = map(all_cities_states, homicide_rate_by_cities)
+) |> 
+  unnest(res)
+
+knitr::kable(homi_summary, caption = "Proportion of Unsolved Homicides Across U.S. Cities")
+```
+
+```{r}
+homi_rate_plot = 
+  ggplot(homi_summary, aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  labs(
+    title = "Proportion of Unsolved Homicides by City",
+    x = "City, State",
+    y = "Estimated Proportion of Unsolved Homicides"
+  ) +
+  coord_flip() +
+  theme_minimal()
+
+homi_rate_plot
+```
+
+
+
+
 
