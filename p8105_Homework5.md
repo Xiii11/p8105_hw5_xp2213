@@ -201,69 +201,21 @@ total_vs_unsolve = homi_data2 |>
     Total_homicides = n(),
     Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
   )
-
-knitr::kable(total_vs_unsolve, caption = "Total and Unsolved Homicides Across U.S. Cities")
 ```
-
-| city           | Total_homicides | Unsolved_homicides |
-|:---------------|----------------:|-------------------:|
-| Albuquerque    |             378 |                146 |
-| Atlanta        |             973 |                373 |
-| Baltimore      |            2827 |               1825 |
-| Baton Rouge    |             424 |                196 |
-| Birmingham     |             800 |                347 |
-| Boston         |             614 |                310 |
-| Buffalo        |             521 |                319 |
-| Charlotte      |             687 |                206 |
-| Chicago        |            5535 |               4073 |
-| Cincinnati     |             694 |                309 |
-| Columbus       |            1084 |                575 |
-| Dallas         |            1567 |                754 |
-| Denver         |             312 |                169 |
-| Detroit        |            2519 |               1482 |
-| Durham         |             276 |                101 |
-| Fort Worth     |             549 |                255 |
-| Fresno         |             487 |                169 |
-| Houston        |            2942 |               1493 |
-| Indianapolis   |            1322 |                594 |
-| Jacksonville   |            1168 |                597 |
-| Kansas City    |            1190 |                486 |
-| Las Vegas      |            1381 |                572 |
-| Long Beach     |             378 |                156 |
-| Los Angeles    |            2257 |               1106 |
-| Louisville     |             576 |                261 |
-| Memphis        |            1514 |                483 |
-| Miami          |             744 |                450 |
-| Milwaukee      |            1115 |                403 |
-| Minneapolis    |             366 |                187 |
-| Nashville      |             767 |                278 |
-| New Orleans    |            1434 |                930 |
-| New York       |             627 |                243 |
-| Oakland        |             947 |                508 |
-| Oklahoma City  |             672 |                326 |
-| Omaha          |             409 |                169 |
-| Philadelphia   |            3037 |               1360 |
-| Phoenix        |             914 |                504 |
-| Pittsburgh     |             631 |                337 |
-| Richmond       |             429 |                113 |
-| Sacramento     |             376 |                139 |
-| San Antonio    |             833 |                357 |
-| San Bernardino |             275 |                170 |
-| San Diego      |             461 |                175 |
-| San Francisco  |             663 |                336 |
-| Savannah       |             246 |                115 |
-| St. Louis      |            1677 |                905 |
-| Stockton       |             444 |                266 |
-| Tampa          |             208 |                 95 |
-| Tulsa          |             584 |                193 |
-| Washington     |            1345 |                589 |
-
-Total and Unsolved Homicides Across U.S. Cities
 
 The raw data contains 12 variables, which are uid, reported_date,
 victim_last, victim_first, victim_race, victim_age, victim_sex, city,
-state, lat, lon, disposition, and 52179 observations. For the tidy
-dataset, a new variable “city_state” was created.
+state, lat, lon, disposition, and 52179 observations.Each observation is
+uniquely identified by a uid and includes the reported date of the
+incident, as well as the victim’s full name, age, sex, and race.
+Location details such as latitude, longitude, city, and state are also
+provided, along with the final disposition of the case. In the tidy
+dataset, a new variable, city_state, was created by combining city and
+state to simplify geographic analysis.
+
+<br> Calculate the total and unsolved homicides in Baltimore, MD and
+perform a proportion test to estimate the proportion of unsolved
+homicides along with confidence intervals.
 
 ``` r
 Bal_MD_prop = homi_data2 |> 
@@ -273,14 +225,6 @@ Bal_MD_prop = homi_data2 |>
     Unsolved_Homicides_in_Baltimore_MD = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
   )
 
-knitr::kable(Bal_MD_prop)
-```
-
-| Total_Homicides_in_Baltimore_MD | Unsolved_Homicides_in_Baltimore_MD |
-|--------------------------------:|-----------------------------------:|
-|                            2827 |                               1825 |
-
-``` r
 Bal_MD_prop_res = prop.test(Bal_MD_prop$Unsolved_Homicides_in_Baltimore_MD, Bal_MD_prop$Total_Homicides_in_Baltimore_MD) |> 
   broom::tidy() |> 
   select(estimate,conf.low, conf.high)
@@ -293,6 +237,9 @@ knitr::kable(Bal_MD_prop_res, caption = "Proportion of Unsolved Homicides in Bal
 | 0.6455607 | 0.6275625 | 0.6631599 |
 
 Proportion of Unsolved Homicides in Baltimore, MD
+
+Extract both the proportion of unsolved homicides and the confidence
+interval for each of the cities.
 
 ``` r
 homicide_rate_by_cities = function(city_name) {
@@ -378,9 +325,14 @@ knitr::kable(homi_summary, caption = "Proportion of Unsolved Homicides Across U.
 
 Proportion of Unsolved Homicides Across U.S. Cities
 
+Create a plot displaying the estimated proportion of unsolved homicides
+across various U.S. cities, with each point representing the mean
+estimate and error bars indicating 95% confidence intervals.
+
 ``` r
-homi_rate_plot = 
-  ggplot(homi_summary, aes(x = city_state, y = estimate)) +
+homi_rate_plot = homi_summary |> 
+  mutate(city_state = reorder(city_state, estimate)) |> 
+  ggplot(aes(x = city_state, y = estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
   labs(
@@ -394,7 +346,3 @@ homi_rate_plot
 ```
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
-
-The plot displays the estimated proportion of unsolved homicides across
-various U.S. cities, with each point representing the mean estimate and
-error bars indicating confidence intervals.

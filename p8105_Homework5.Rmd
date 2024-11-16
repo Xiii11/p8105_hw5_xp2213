@@ -184,13 +184,12 @@ total_vs_unsolve = homi_data2 |>
     Total_homicides = n(),
     Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
   )
-
-knitr::kable(total_vs_unsolve, caption = "Total and Unsolved Homicides Across U.S. Cities")
-
 ```
 
-The raw data contains `r ncol(homi_data)` variables, which are `r names(homi_data)`, and `r nrow(homi_data)` observations. For the tidy dataset, a new variable "city_state" was created.
+The raw data contains `r ncol(homi_data)` variables, which are `r names(homi_data)`, and `r nrow(homi_data)` observations.Each observation is uniquely identified by a uid and includes the reported date of the incident, as well as the victim's full name, age, sex, and race. Location details such as latitude, longitude, city, and state are also provided, along with the final disposition of the case. In the tidy dataset, a new variable, city_state, was created by combining city and state to simplify geographic analysis.
 
+<br>
+Calculate the total and unsolved homicides in Baltimore, MD and perform a proportion test to estimate the proportion of unsolved homicides along with confidence intervals.
 ```{r}
 Bal_MD_prop = homi_data2 |> 
   filter(city_state == "Baltimore, MD") |> 
@@ -199,8 +198,6 @@ Bal_MD_prop = homi_data2 |>
     Unsolved_Homicides_in_Baltimore_MD = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
   )
 
-knitr::kable(Bal_MD_prop)
-
 Bal_MD_prop_res = prop.test(Bal_MD_prop$Unsolved_Homicides_in_Baltimore_MD, Bal_MD_prop$Total_Homicides_in_Baltimore_MD) |> 
   broom::tidy() |> 
   select(estimate,conf.low, conf.high)
@@ -208,6 +205,7 @@ Bal_MD_prop_res = prop.test(Bal_MD_prop$Unsolved_Homicides_in_Baltimore_MD, Bal_
 knitr::kable(Bal_MD_prop_res, caption = "Proportion of Unsolved Homicides in Baltimore, MD")
 ```
 
+Extract both the proportion of unsolved homicides and the confidence interval for each of the cities.
 ```{r}
 homicide_rate_by_cities = function(city_name) {
   
@@ -236,9 +234,11 @@ homi_summary = tibble(
 knitr::kable(homi_summary, caption = "Proportion of Unsolved Homicides Across U.S. Cities")
 ```
 
+Create a plot displaying the estimated proportion of unsolved homicides across various U.S. cities, with each point representing the mean estimate and error bars indicating 95% confidence intervals.
 ```{r}
-homi_rate_plot = 
-  ggplot(homi_summary, aes(x = city_state, y = estimate)) +
+homi_rate_plot = homi_summary |> 
+  mutate(city_state = reorder(city_state, estimate)) |> 
+  ggplot(aes(x = city_state, y = estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
   labs(
@@ -250,8 +250,6 @@ homi_rate_plot =
 
 homi_rate_plot
 ```
-
-The plot displays the estimated proportion of unsolved homicides across various U.S. cities, with each point representing the mean estimate and error bars indicating confidence intervals.
 
 
 
