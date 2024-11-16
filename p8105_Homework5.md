@@ -209,9 +209,14 @@ state, lat, lon, disposition, and 52179 observations.Each observation is
 uniquely identified by a uid and includes the reported date of the
 incident, as well as the victim’s full name, age, sex, and race.
 Location details such as latitude, longitude, city, and state are also
-provided, along with the final disposition of the case. In the tidy
-dataset, a new variable, city_state, was created by combining city and
-state to simplify geographic analysis.
+provided, along with the final disposition of the case.
+
+In the tidy dataset, a new variable, city_state, was created by
+combining city and state to simplify geographic analysis.
+
+The data was summarized for each city to calculate the total number of
+homicides and the number of unsolved cases, identified as those with a
+disposition of “Closed without arrest” or “Open/No arrest”.
 
 <br> Calculate the total and unsolved homicides in Baltimore, MD and
 perform a proportion test to estimate the proportion of unsolved
