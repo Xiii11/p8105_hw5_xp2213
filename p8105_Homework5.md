@@ -7,8 +7,8 @@ Name: Xi Peng Uni: xp2213
 # Problem 1. Birthday problem
 
 Defines the bday_sim function, which simulates random birthdays for a
-group of size n and checks if there are any duplicate
-birthdays,returning TRUE if duplicates exist and FALSE otherwise.
+group of size n and checks if there are any duplicate birthdays,
+returning TRUE if duplicates exist and FALSE otherwise.
 
 ``` r
 bday_sim = function(n) {
@@ -57,53 +57,64 @@ approaches 1 as the group size exceeds 50.
 
 # Problem 2. Power Analysis of a One-Sample T-test
 
+Defines a t_test_sim function and perform a one-sample t-test.
+
 ``` r
-sim_mean_sd = function(n, mu = 0, sigma = 5) {
-  sim_data = tibble(
-    x = rnorm(n, mean = mu, sd = sigma),
-  )
+alpha = 0.05
+
+t_test_sim = function(mu) {
   
-  t_test_res = t.test(sim_data$x, mu = 0) |> 
+  x = rnorm(30, mean = mu, sd = 5)
+  
+  t_test_res = t.test(x, mu = 0) |> 
     broom::tidy() |> 
     select(estimate, p.value)
   
   return(t_test_res)
 }
 
-sim_res = 
+# Simulates data for mu = 0 across 5000 iterations, performs t-tests, and calculates whether the null hypothesis is rejected based on the alpha level.
+sim_res_0 = 
   expand_grid(
-    sample_size = 30,
-    mu = c(0, 1, 2, 3, 4, 5, 6),
+    mu = 0,
     iter = 1:5000
   ) |> 
   mutate(
-    test_res = map(mu, \(x) sim_mean_sd(n = 30, mu = x))
+    test_res = map(mu, t_test_sim)
   ) |>
   unnest(test_res) |>
   mutate(
-    rejected = p.value < 0.05
+    rejected = p.value < alpha
   )
 
-sim_q2_summary_df = sim_res |> 
+# Repeat the above for μ = {1,2,3,4,5,6}.
+sim_res_1_6 = 
+  expand_grid(
+    mu = c(1, 2, 3, 4, 5, 6),
+    iter = 1:5000
+  ) |> 
+  mutate(
+    test_res = map(mu, t_test_sim)
+  ) |>
+  unnest(test_res) |>
+  mutate(
+    rejected = p.value < alpha
+  )
+
+# Combine results from μ = 0 and μ = {1,2,3,4,5,6} simulations into a single dataset for further analysis.
+sim_res_comb = bind_rows(sim_res_0, sim_res_1_6)
+
+sim_q2_summary_df = sim_res_comb |> 
   group_by(mu) |>
   summarise(
     power = mean(rejected),
     avg_estimate = mean(estimate),
     avg_estimate_rejected = mean(estimate[rejected])
   ) 
-
-knitr::kable(sim_q2_summary_df)
 ```
 
-|  mu |  power | avg_estimate | avg_estimate_rejected |
-|----:|-------:|-------------:|----------------------:|
-|   0 | 0.0500 |    0.0116136 |              0.087363 |
-|   1 | 0.1882 |    1.0123946 |              2.234635 |
-|   2 | 0.5626 |    2.0067996 |              2.616529 |
-|   3 | 0.8904 |    3.0001475 |              3.184274 |
-|   4 | 0.9872 |    4.0095210 |              4.040242 |
-|   5 | 0.9994 |    4.9975277 |              4.999461 |
-|   6 | 1.0000 |    6.0068896 |              6.006890 |
+Create a plot illustrating how the power of the test varies with the
+true value of the mean (μ).
 
 ``` r
 power_plot = 
@@ -115,29 +126,31 @@ power_plot =
     x = "True value of μ",
     y = "Power of test",
     title = "Effect Size and Power"
-  ) +
-  theme_minimal()
+  )
 
 power_plot
 ```
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
 
+Creates a plot comparing the average estimate of μ across all samples
+with the average estimate of μ only for samples where the null
+hypothesis was rejected.
+
 ``` r
-estimates_plot = 
+estimates_plot =
   sim_q2_summary_df |>
-  ggplot(aes(x = mu, y = avg_estimate)) +
-  geom_point() +
+  ggplot(aes(x = mu)) +
+  geom_point(aes(y = avg_estimate, color = "All samples")) +
   geom_line(aes(y = avg_estimate, color = "All samples")) +
+  geom_point(aes(y = avg_estimate_rejected, color = "Rejected null only")) +
   geom_line(aes(y = avg_estimate_rejected, color = "Rejected null only")) +
   labs(
     x = "True value of μ",
     y = "Average estimate of μ",
     title = "Average Estimates vs True μ",
     color = "Sample Type"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+  )
 
 estimates_plot
 ```
@@ -145,18 +158,20 @@ estimates_plot
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 There is a clear association between effect size and power. When the
-true value of mu is small, the test has low power, meaning there is a
-smaller chance of rejecting the null hypothesis. However, as mu
+true value of μ is small, the test has low power, meaning there is a
+smaller chance of rejecting the null hypothesis. However, as μ
 increases, representing a larger effect size, the power of the test also
 increases. Specifically, according to the the “Effect Size and Power”
-plot, from mu = 1 to mu = 3, the power rises sharply. Beyond mu = 4, the
+plot, from μ = 1 to μ = 3, the power rises sharply. Beyond μ = 4, the
 power approaches 1, indicating that the test is highly effective at
 detecting a false null hypothesis at these larger effect sizes.
 
-The sample average of mu^hat across tests for which the null is rejected
-is not exactly equal to the true value of mu.
+The sample average of 𝜇̂ across tests for which the null is rejected is
+not exactly equal to the true value ofμu.
 
 # Problem 3. Homicide Rates Across U.S. Cities
+
+Dataset import and clean.
 
 ``` r
 url = "https://raw.githubusercontent.com/washingtonpost/data-homicides/refs/heads/master/homicide-data.csv"
@@ -373,8 +388,7 @@ homi_rate_plot =
     x = "City, State",
     y = "Estimated Proportion of Unsolved Homicides"
   ) +
-  coord_flip() +
-  theme_minimal()
+  coord_flip() 
 
 homi_rate_plot
 ```
