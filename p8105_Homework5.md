@@ -6,6 +6,10 @@ Name: Xi Peng Uni: xp2213
 
 # Problem 1. Birthday problem
 
+Defines the bday_sim function, which simulates random birthdays for a
+group of size n and checks if there are any duplicate
+birthdays,returning TRUE if duplicates exist and FALSE otherwise.
+
 ``` r
 bday_sim = function(n) {
   
@@ -16,11 +20,11 @@ bday_sim = function(n) {
       return(duplicate)
       
 }
-
-bday_sim(100)
 ```
 
-    ## [1] TRUE
+Runs the bday_sim function 10,000 times for each group size from 2 to
+50, calculates the probability of at least two people sharing a
+birthday, and plots this probability as a function of group size.
 
 ``` r
 sim_res =
@@ -34,7 +38,13 @@ sim_res =
 
 sim_res |> 
   ggplot(aes(x = n, y = probability)) +
-  geom_line()
+  geom_line() +
+  geom_point() +
+  labs (
+    title = "Likelihood of Birthday Matches in Groups of Varying Sizes",
+    x = "Group Size (n)",
+    y = "Probability"
+  )
 ```
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
@@ -87,13 +97,13 @@ knitr::kable(sim_q2_summary_df)
 
 |  mu |  power | avg_estimate | avg_estimate_rejected |
 |----:|-------:|-------------:|----------------------:|
-|   0 | 0.0470 |    0.0040973 |              0.223064 |
-|   1 | 0.1790 |    0.9811680 |              2.256505 |
-|   2 | 0.5568 |    1.9901983 |              2.627835 |
-|   3 | 0.8874 |    2.9899405 |              3.178205 |
-|   4 | 0.9886 |    3.9874752 |              4.014364 |
-|   5 | 0.9998 |    5.0014896 |              5.002200 |
-|   6 | 1.0000 |    6.0091574 |              6.009157 |
+|   0 | 0.0500 |    0.0116136 |              0.087363 |
+|   1 | 0.1882 |    1.0123946 |              2.234635 |
+|   2 | 0.5626 |    2.0067996 |              2.616529 |
+|   3 | 0.8904 |    3.0001475 |              3.184274 |
+|   4 | 0.9872 |    4.0095210 |              4.040242 |
+|   5 | 0.9994 |    4.9975277 |              4.999461 |
+|   6 | 1.0000 |    6.0068896 |              6.006890 |
 
 ``` r
 power_plot = 
@@ -116,7 +126,8 @@ power_plot
 ``` r
 estimates_plot = 
   sim_q2_summary_df |>
-  ggplot(aes(x = mu)) +
+  ggplot(aes(x = mu, y = avg_estimate)) +
+  geom_point() +
   geom_line(aes(y = avg_estimate, color = "All samples")) +
   geom_line(aes(y = avg_estimate_rejected, color = "Rejected null only")) +
   labs(
@@ -170,7 +181,7 @@ homi_data2 = homi_data |>
   )
 
 total_vs_unsolve = homi_data2 |> 
-    group_by(city_state) |> 
+    group_by(city) |> 
   summarize(
     Total_homicides = n(),
     Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
@@ -179,65 +190,65 @@ total_vs_unsolve = homi_data2 |>
 knitr::kable(total_vs_unsolve, caption = "Total and Unsolved Homicides Across U.S. Cities")
 ```
 
-| city_state         | Total_homicides | Unsolved_homicides |
-|:-------------------|----------------:|-------------------:|
-| Albuquerque, NM    |             378 |                146 |
-| Atlanta, GA        |             973 |                373 |
-| Baltimore, MD      |            2827 |               1825 |
-| Baton Rouge, LA    |             424 |                196 |
-| Birmingham, AL     |             800 |                347 |
-| Boston, MA         |             614 |                310 |
-| Buffalo, NY        |             521 |                319 |
-| Charlotte, NC      |             687 |                206 |
-| Chicago, IL        |            5535 |               4073 |
-| Cincinnati, OH     |             694 |                309 |
-| Columbus, OH       |            1084 |                575 |
-| Dallas, TX         |            1567 |                754 |
-| Denver, CO         |             312 |                169 |
-| Detroit, MI        |            2519 |               1482 |
-| Durham, NC         |             276 |                101 |
-| Fort Worth, TX     |             549 |                255 |
-| Fresno, CA         |             487 |                169 |
-| Houston, TX        |            2942 |               1493 |
-| Indianapolis, IN   |            1322 |                594 |
-| Jacksonville, FL   |            1168 |                597 |
-| Kansas City, MO    |            1190 |                486 |
-| Las Vegas, NV      |            1381 |                572 |
-| Long Beach, CA     |             378 |                156 |
-| Los Angeles, CA    |            2257 |               1106 |
-| Louisville, KY     |             576 |                261 |
-| Memphis, TN        |            1514 |                483 |
-| Miami, FL          |             744 |                450 |
-| Milwaukee, wI      |            1115 |                403 |
-| Minneapolis, MN    |             366 |                187 |
-| Nashville, TN      |             767 |                278 |
-| New Orleans, LA    |            1434 |                930 |
-| New York, NY       |             627 |                243 |
-| Oakland, CA        |             947 |                508 |
-| Oklahoma City, OK  |             672 |                326 |
-| Omaha, NE          |             409 |                169 |
-| Philadelphia, PA   |            3037 |               1360 |
-| Phoenix, AZ        |             914 |                504 |
-| Pittsburgh, PA     |             631 |                337 |
-| Richmond, VA       |             429 |                113 |
-| Sacramento, CA     |             376 |                139 |
-| San Antonio, TX    |             833 |                357 |
-| San Bernardino, CA |             275 |                170 |
-| San Diego, CA      |             461 |                175 |
-| San Francisco, CA  |             663 |                336 |
-| Savannah, GA       |             246 |                115 |
-| St. Louis, MO      |            1677 |                905 |
-| Stockton, CA       |             444 |                266 |
-| Tampa, FL          |             208 |                 95 |
-| Tulsa, AL          |               1 |                  0 |
-| Tulsa, OK          |             583 |                193 |
-| Washington, DC     |            1345 |                589 |
+| city           | Total_homicides | Unsolved_homicides |
+|:---------------|----------------:|-------------------:|
+| Albuquerque    |             378 |                146 |
+| Atlanta        |             973 |                373 |
+| Baltimore      |            2827 |               1825 |
+| Baton Rouge    |             424 |                196 |
+| Birmingham     |             800 |                347 |
+| Boston         |             614 |                310 |
+| Buffalo        |             521 |                319 |
+| Charlotte      |             687 |                206 |
+| Chicago        |            5535 |               4073 |
+| Cincinnati     |             694 |                309 |
+| Columbus       |            1084 |                575 |
+| Dallas         |            1567 |                754 |
+| Denver         |             312 |                169 |
+| Detroit        |            2519 |               1482 |
+| Durham         |             276 |                101 |
+| Fort Worth     |             549 |                255 |
+| Fresno         |             487 |                169 |
+| Houston        |            2942 |               1493 |
+| Indianapolis   |            1322 |                594 |
+| Jacksonville   |            1168 |                597 |
+| Kansas City    |            1190 |                486 |
+| Las Vegas      |            1381 |                572 |
+| Long Beach     |             378 |                156 |
+| Los Angeles    |            2257 |               1106 |
+| Louisville     |             576 |                261 |
+| Memphis        |            1514 |                483 |
+| Miami          |             744 |                450 |
+| Milwaukee      |            1115 |                403 |
+| Minneapolis    |             366 |                187 |
+| Nashville      |             767 |                278 |
+| New Orleans    |            1434 |                930 |
+| New York       |             627 |                243 |
+| Oakland        |             947 |                508 |
+| Oklahoma City  |             672 |                326 |
+| Omaha          |             409 |                169 |
+| Philadelphia   |            3037 |               1360 |
+| Phoenix        |             914 |                504 |
+| Pittsburgh     |             631 |                337 |
+| Richmond       |             429 |                113 |
+| Sacramento     |             376 |                139 |
+| San Antonio    |             833 |                357 |
+| San Bernardino |             275 |                170 |
+| San Diego      |             461 |                175 |
+| San Francisco  |             663 |                336 |
+| Savannah       |             246 |                115 |
+| St. Louis      |            1677 |                905 |
+| Stockton       |             444 |                266 |
+| Tampa          |             208 |                 95 |
+| Tulsa          |             584 |                193 |
+| Washington     |            1345 |                589 |
 
 Total and Unsolved Homicides Across U.S. Cities
 
 The raw data contains 12 variables, which are uid, reported_date,
 victim_last, victim_first, victim_race, victim_age, victim_sex, city,
-state, lat, lon, disposition, and 52179 observations.
+state, lat, lon, disposition, and 52179 observations. For the tidy
+dataset, a new variable “city_state” was created.
 
 ``` r
 Bal_MD_prop = homi_data2 |> 
@@ -369,3 +380,7 @@ homi_rate_plot
 ```
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+
+The plot displays the estimated proportion of unsolved homicides across
+various U.S. cities, with each point representing the mean estimate and
+error bars indicating confidence intervals.

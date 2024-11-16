@@ -32,7 +32,7 @@ set.seed(924)
 ```
 
 # Problem 1. Birthday problem
-
+Defines the bday_sim function, which simulates random birthdays for a group of size n and checks if there are any duplicate birthdays,returning TRUE if duplicates exist and FALSE otherwise.
 ```{r}
 bday_sim = function(n) {
   
@@ -43,11 +43,8 @@ bday_sim = function(n) {
       return(duplicate)
       
 }
-
-bday_sim(100)
-
 ```
-
+Runs the bday_sim function 10,000 times for each group size from 2 to 50, calculates the probability of at least two people sharing a birthday, and plots this probability as a function of group size.
 ```{r}
 sim_res =
   expand_grid(
@@ -60,7 +57,13 @@ sim_res =
 
 sim_res |> 
   ggplot(aes(x = n, y = probability)) +
-  geom_line()
+  geom_line() +
+  geom_point() +
+  labs (
+    title = "Likelihood of Birthday Matches in Groups of Varying Sizes",
+    x = "Group Size (n)",
+    y = "Probability"
+  )
 ```
 
 The plot shows that the probability of at least two people sharing a birthday increases steadily as the group size grows. At around the sample size of 23 people, the probability crosses the 0.5 mark, representing a key threshold. Beyond this point, the probability approaches 1 as the group size exceeds 50.
@@ -125,7 +128,8 @@ power_plot
 ```{r}
 estimates_plot = 
   sim_q2_summary_df |>
-  ggplot(aes(x = mu)) +
+  ggplot(aes(x = mu, y = avg_estimate)) +
+  geom_point() +
   geom_line(aes(y = avg_estimate, color = "All samples")) +
   geom_line(aes(y = avg_estimate_rejected, color = "Rejected null only")) +
   labs(
@@ -159,7 +163,7 @@ homi_data2 = homi_data |>
   )
 
 total_vs_unsolve = homi_data2 |> 
-    group_by(city_state) |> 
+    group_by(city) |> 
   summarize(
     Total_homicides = n(),
     Unsolved_homicides = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
@@ -169,7 +173,7 @@ knitr::kable(total_vs_unsolve, caption = "Total and Unsolved Homicides Across U.
 
 ```
 
-The raw data contains `r ncol(homi_data)` variables, which are `r names(homi_data)`, and `r nrow(homi_data)` observations. 
+The raw data contains `r ncol(homi_data)` variables, which are `r names(homi_data)`, and `r nrow(homi_data)` observations. For the tidy dataset, a new variable "city_state" was created.
 
 ```{r}
 Bal_MD_prop = homi_data2 |> 
@@ -232,6 +236,7 @@ homi_rate_plot =
 homi_rate_plot
 ```
 
+The plot displays the estimated proportion of unsolved homicides across various U.S. cities, with each point representing the mean estimate and error bars indicating confidence intervals.
 
 
 
