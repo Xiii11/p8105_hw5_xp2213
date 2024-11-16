@@ -133,8 +133,17 @@ power_plot
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
 
-Creates a plot comparing the average estimate of μ across all samples
-with the average estimate of μ only for samples where the null
+There is a clear association between effect size and power. When the
+true value of μ is small, the test has low power, meaning there is a
+smaller chance of rejecting the null hypothesis. However, as μ
+increases, representing a larger effect size, the power of the test also
+increases. Specifically, according to the the “Effect Size and Power”
+plot, from μ = 1 to μ = 3, the power rises sharply. Beyond μ = 4, the
+power approaches 1, indicating that the test is highly effective at
+detecting a false null hypothesis at these larger effect sizes.
+
+<br> Creates a plot comparing the average estimate of μ across all
+samples with the average estimate of μ only for samples where the null
 hypothesis was rejected.
 
 ``` r
@@ -157,17 +166,15 @@ estimates_plot
 
 <img src="p8105_Homework5_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
-There is a clear association between effect size and power. When the
-true value of μ is small, the test has low power, meaning there is a
-smaller chance of rejecting the null hypothesis. However, as μ
-increases, representing a larger effect size, the power of the test also
-increases. Specifically, according to the the “Effect Size and Power”
-plot, from μ = 1 to μ = 3, the power rises sharply. Beyond μ = 4, the
-power approaches 1, indicating that the test is highly effective at
-detecting a false null hypothesis at these larger effect sizes.
-
-The sample average of 𝜇̂ across tests for which the null is rejected is
-not exactly equal to the true value ofμu.
+No. The sample average of μ̂ across tests for which the null is rejected
+is not approximately equal to the true value of μ, especially for
+smaller values of μ. This is because the sample average in rejected
+cases is susceptible to selection bias. Only tests with extreme sample
+means are likely to reject the null hypothesis, resulting in that the
+sample means are disproportionately higher or lower than the real mean.
+As μ grows, the genuine effect size becomes significant enough to reject
+the null hypothesis. This reduces the influence of extreme values and
+aligns sample averages more closely with the true mean.
 
 # Problem 3. Homicide Rates Across U.S. Cities
 
